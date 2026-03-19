@@ -107,13 +107,18 @@ const CORES_ALERTA: Record<string, string> = {
       </div>
     </div>
 
-    <!-- Barra de Ferramentas Inferior -->
-    <div class="absolute bottom-6 left-20 z-[1000] flex gap-3">
-      <button (click)="alternarModoRota()" [class]="modoRotaAtivo ? 'bg-red-600' : 'bg-gray-800'" class="text-white p-4 rounded-full shadow-lg transition-all hover:scale-105 flex items-center gap-2">
-        <span class="text-xs font-bold">{{ modoRotaAtivo ? 'Sair Rota' : '📍 Traçar Rota' }}</span>
+    <!-- Barra de Ferramentas Inferior (Unificada) -->
+    <div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-[1000] flex gap-2 sm:gap-3 w-[calc(100%-2rem)] sm:w-auto justify-center">
+      <button (click)="alternarModoRota()" 
+        [class]="modoRotaAtivo ? 'bg-red-600' : 'bg-gray-800'" 
+        class="text-white px-3 py-3 sm:p-4 rounded-full shadow-lg transition-all hover:scale-105 flex items-center gap-1 sm:gap-2 min-w-fit border-2 border-white/20">
+        <span class="text-[10px] sm:text-xs font-bold whitespace-nowrap">{{ modoRotaAtivo ? 'Sair Rota' : '📍 Rota' }}</span>
       </button>
-      <button (click)="alternarModoParque()" [class]="modoParqueAtivo ? 'bg-green-700' : 'bg-green-600'" class="text-white p-4 rounded-full shadow-lg transition-all hover:scale-105 flex items-center gap-2">
-        <span class="text-xs font-bold">🌳 Registrar Parque</span>
+      
+      <button (click)="alternarModoParque()" 
+        [class]="modoParqueAtivo ? 'bg-green-700' : 'bg-green-600'" 
+        class="text-white px-3 py-3 sm:p-4 rounded-full shadow-lg transition-all hover:scale-105 flex items-center gap-1 sm:gap-2 min-w-fit border-2 border-white/20">
+        <span class="text-[10px] sm:text-xs font-bold whitespace-nowrap">🌳 Parque</span>
       </button>
     </div>
   `,
