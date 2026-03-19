@@ -1,0 +1,65 @@
+<!-- Botão Flutuante Principal -->
+<button 
+  (click)="toggleModal()"
+  class="absolute bottom-6 right-6 z-[1000] bg-blue-600 text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition-colors focus:outline-none">
+  + Denunciar
+</button>
+
+<!-- UI de Modo de Captura (Minimizada) -->
+<div *ngIf="modoCapturaManual" class="absolute top-24 left-1/2 -translate-x-1/2 z-[2500] bg-blue-600 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-4 animate-pulse">
+  <span class="text-sm font-bold flex items-center gap-2">📍 Clique em qualquer lugar do mapa</span>
+  <button (click)="modoCapturaManual = false; supabase.modoCapturaMapa$.next(false)" class="bg-white/20 hover:bg-white/30 rounded-full p-1">&times;</button>
+</div>
+
+<!-- Modal do Formulário -->
+<div *ngIf="modalAberto && !modoCapturaManual" class="absolute inset-0 z-[2000] bg-black bg-opacity-50 flex justify-center items-end sm:items-center p-4">
+  <div class="bg-white w-full sm:w-96 p-6 rounded-t-2xl sm:rounded-2xl shadow-xl transform transition-all border-t-4 border-blue-600">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-bold text-gray-800">Novo Alerta</h2>
+      <button (click)="toggleModal()" class="text-gray-500 hover:text-red-500 font-bold text-xl">&times;</button>
+    </div>
+
+    <form [formGroup]="formulario" (ngSubmit)="submeter()" class="space-y-4">
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Qual o problema?</label>
+        <select formControlName="tipo_problema" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2 border">
+          <option value="" disabled>Selecione uma opção...</option>
+          <option value="buraco">Buraco na via/ciclovia</option>
+          <option value="falta_iluminacao">Falta de Iluminação (Poste apagado)</option>
+          <option value="calcada_irregular">Calçada Irregular/Obstruída</option>
+          <option value="mato_alto">Mato Alto / Abandono</option>
+        </select>
+      </div>
+
+      <div class="bg-gray-50 p-3 rounded border border-gray-200">
+        <p class="text-xs font-bold text-gray-400 uppercase mb-2">Localização do Alerta</p>
+        <div class="space-y-2">
+          <button type="button" (click)="capturarLocalizacao()" [disabled]="buscandoGps" class="w-full bg-blue-50 text-blue-700 font-medium p-2 rounded hover:bg-blue-100 transition-colors text-sm flex justify-center items-center gap-2 border border-blue-200">
+            {{ buscandoGps ? 'Buscando satélites...' : '🛰️ GPS: Minha posição atual' }}
+          </button>
+          
+          <button type="button" (click)="ativarCapturaManual()" class="w-full bg-white text-gray-700 font-medium p-2 rounded hover:bg-gray-50 transition-colors text-sm flex justify-center items-center gap-2 border border-gray-200">
+            📍 Selecionar no Mapa
+          </button>
+        </div>
+        
+        <p *ngIf="erroGps" class="text-red-500 text-[10px] mt-1">{{ erroGps }}</p>
+        <div *ngIf="formulario.value.latitude" class="mt-2 p-2 bg-green-50 rounded border border-green-200 flex items-center gap-2">
+          <div class="w-2 h-2 rounded-full bg-green-500"></div>
+          <p class="text-green-700 text-[10px] font-mono">Coordenadas: {{ formulario.value.latitude | number:'1.4-4' }}, {{ formulario.value.longitude | number:'1.4-4' }}</p>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Descrição (Opcional)</label>
+        <textarea formControlName="descricao" rows="2" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2 border text-sm" placeholder="Detalhes adicionais..."></textarea>
+      </div>
+
+      <button type="submit" [disabled]="formulario.invalid || buscandoGps" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-xl disabled:bg-gray-300 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg active:scale-[0.98]">
+        Enviar Registro Público
+      </button>
+
+    </form>
+  </div>
+</div>
