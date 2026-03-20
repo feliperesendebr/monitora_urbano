@@ -123,7 +123,6 @@ const CORES_ALERTA: Record<string, string> = {
     </div>
   `,
   styles: [`
-    :host { display: block; width: 100%; height: 100%; }
     .cursor-crosshair { cursor: crosshair !important; }
   `]
 })

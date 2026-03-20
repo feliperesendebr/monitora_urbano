@@ -9,12 +9,7 @@ import { Subscription } from 'rxjs';
   selector: 'app-formulario-alerta',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
-  templateUrl: './formulario-alerta.html',
-  styles: [`
-    :host {
-      display: block;
-    }
-  `]
+  templateUrl: './formulario-alerta.html'
 })
 export class FormularioAlertaComponent implements OnInit, OnDestroy {
   @Output() alertaRegistrado = new EventEmitter<void>();
