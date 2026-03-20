@@ -23,15 +23,26 @@ app-mapa, app-formulario-alerta {
   left: 0;
   width: 100%;
   height: 100%;
-  pointer-events: none; /* Deixa cliques passarem para o mapa por padrão */
 }
 
-/* Reativa cliques para os botões e modais dentro dos componentes */
-app-mapa button, 
-app-mapa .leaflet-container,
-app-formulario-alerta button, 
-app-formulario-alerta form,
-app-formulario-alerta .bg-white {
+/* O formulário de alerta deve ter fundo transparente para não tapar o mapa */
+app-formulario-alerta {
+  pointer-events: none;
+}
+
+/* O mapa fica na base */
+app-mapa {
+  pointer-events: none;
+}
+
+/* Mas os elementos internos (mapa real, botões, painéis) devem capturar cliques */
+#map,
+.leaflet-container,
+app-mapa button,
+app-mapa .absolute,
+app-formulario-alerta button,
+app-formulario-alerta .bg-white,
+app-formulario-alerta form {
   pointer-events: auto;
 }
 
