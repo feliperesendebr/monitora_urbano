@@ -1,9 +1,15 @@
 import { Component, AfterViewInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import * as L from 'leaflet';
+
+// Importação técnica para garantir que o plugin funcione em produção (Vercel)
 import 'leaflet-routing-machine';
+
 import { SupabaseService } from '../../core/services/supabase';
 import { Alerta, Parque } from '../../core/models/alerta.model';
+
+// Hack de Compatibilidade: Garante que o Leaflet seja visto globalmente pelo plugin de rotas
+(window as any).L = L;
 
 const CORES_ALERTA: Record<string, string> = {
   'buraco': '#ef4444',
@@ -20,7 +26,7 @@ const CORES_ALERTA: Record<string, string> = {
     <div id="map" class="w-full h-full z-0" [ngClass]="{'cursor-crosshair': (supabaseService.modoCapturaMapa$ | async)}"></div>
     
     <!-- LOADING BAR (TOP) -->
-    <div *ngIf="carregando" class="absolute top-0 left-0 w-full h-1 bg-blue-100 z-[5000] overflow-hidden">
+    <div *ngIf="carregando" class="absolute top-0 left-0 w-full h-1 bg-blue-100 z-[5000] overflow-hidden text-gray-900">
       <div class="h-full bg-blue-600 animate-loading-bar"></div>
     </div>
 
@@ -32,7 +38,7 @@ const CORES_ALERTA: Record<string, string> = {
         <div *ngIf="carregandoPainel" class="absolute inset-0 bg-green-600/50 flex items-center justify-center z-10 backdrop-blur-[1px]">
            <div class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
         </div>
-        <div class="flex justify-between items-start">
+        <div class="flex justify-between items-start text-white">
           <h2 class="text-xl font-bold leading-tight">🌳 {{ parqueSelecionado.nome }}</h2>
           <button (click)="parqueSelecionado = null" class="text-white hover:text-green-200 text-2xl">&times;</button>
         </div>
@@ -59,7 +65,7 @@ const CORES_ALERTA: Record<string, string> = {
             {label: 'Mato Alto', val: statsParque.mato, cor: 'bg-green-500'}
           ]" class="space-y-1">
             <div class="flex justify-between text-[11px] font-bold"><span>{{item.label}}</span><span>{{item.val}}</span></div>
-            <div class="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+            <div class="w-full bg-gray-100 h-2 rounded-full overflow-hidden text-gray-900">
               <div [class]="item.cor + ' h-full'" [style.width.%]="(item.val / (statsParque.total || 1)) * 100"></div>
             </div>
           </div>
@@ -272,28 +278,41 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
   }
 
   private async calcularRota() {
+    // Garante acesso ao Routing através de window.L para evitar erro de produção
+    const Leaflet = (window as any).L;
+    if (!Leaflet.Routing) {
+      console.error("Leaflet Routing Machine não carregado.");
+      return;
+    }
+
     if (this.routingControl) this.map?.removeControl(this.routingControl);
     this.carregandoRota = true;
     this.cdr.detectChanges();
 
-    this.routingControl = (L as any).Routing.control({
-      waypoints: this.pontosRota,
-      router: (L as any).Routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1' }),
-      lineOptions: { styles: [{ color: '#3b82f6', weight: 6, opacity: 0.8 }] } as any,
-      createMarker: () => null,
-      addWaypoints: false, draggableWaypoints: false, show: false
-    }).addTo(this.map);
-    
-    this.routingControl.on('routesfound', (e: any) => {
-      this.analisarSegurancaDaRota(e.routes[0].coordinates);
+    try {
+      this.routingControl = Leaflet.Routing.control({
+        waypoints: this.pontosRota,
+        router: Leaflet.Routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1' }),
+        lineOptions: { styles: [{ color: '#3b82f6', weight: 6, opacity: 0.8 }] } as any,
+        createMarker: () => null,
+        addWaypoints: false, draggableWaypoints: false, show: false
+      }).addTo(this.map);
+      
+      this.routingControl.on('routesfound', (e: any) => {
+        this.analisarSegurancaDaRota(e.routes[0].coordinates);
+        this.carregandoRota = false;
+        this.cdr.detectChanges();
+      });
+      
+      this.routingControl.on('routingerror', () => {
+        this.carregandoRota = false;
+        this.cdr.detectChanges();
+      });
+    } catch (e) {
+      console.error(e);
       this.carregandoRota = false;
       this.cdr.detectChanges();
-    });
-    
-    this.routingControl.on('routingerror', () => {
-      this.carregandoRota = false;
-      this.cdr.detectChanges();
-    });
+    }
   }
 
   private analisarSegurancaDaRota(coordinates: any[]) {
@@ -332,7 +351,7 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
           color: stats.total > 0 ? '#dc2626' : '#16a34a', fillOpacity: 0.2, weight: 2
         }).addTo(this.map!);
         
-        const popupHTML = `<div class="p-3 min-w-[200px]"><h4 class="font-bold text-sm mb-1">🌳 ${p.nome}</h4><p class="text-[11px] text-gray-500 mb-3">${stats.total} alertas ativos</p><button id="btn-ver-detalhes" data-id="${p.id}" class="w-full bg-green-600 text-white text-[10px] font-bold py-2 px-4 rounded hover:bg-green-700">Ver Diagnóstico</button></div>`;
+        const popupHTML = `<div class="p-3 min-w-[200px] text-gray-900"><h4 class="font-bold text-sm mb-1 text-gray-900">🌳 ${p.nome}</h4><p class="text-[11px] text-gray-500 mb-3">${stats.total} alertas ativos</p><button id="btn-ver-detalhes" data-id="${p.id}" class="w-full bg-green-600 text-white text-[10px] font-bold py-2 px-4 rounded hover:bg-green-700">Ver Diagnóstico</button></div>`;
         
         poly.on('click', (e: L.LeafletMouseEvent) => {
           if (this.supabaseService.modoCapturaMapa$.value) { L.DomEvent.stopPropagation(e); this.gerenciarCliqueAlerta(e.latlng); }
