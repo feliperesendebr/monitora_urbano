@@ -2,14 +2,8 @@ import { Component, AfterViewInit, OnDestroy, inject, ChangeDetectorRef } from '
 import { CommonModule } from '@angular/common';
 import * as L from 'leaflet';
 
-// Importação técnica para garantir que o plugin funcione em produção (Vercel)
-import 'leaflet-routing-machine';
-
 import { SupabaseService } from '../../core/services/supabase';
 import { Alerta, Parque } from '../../core/models/alerta.model';
-
-// Hack de Compatibilidade: Garante que o Leaflet seja visto globalmente pelo plugin de rotas
-(window as any).L = L;
 
 const CORES_ALERTA: Record<string, string> = {
   'buraco': '#ef4444',
@@ -34,15 +28,15 @@ const CORES_ALERTA: Record<string, string> = {
     <div *ngIf="parqueSelecionado" id="painelDiagnostico"
       class="absolute top-0 right-0 h-full w-full sm:w-80 bg-white z-[3000] shadow-2xl border-l border-gray-200 transform transition-transform duration-300 flex flex-col pointer-events-auto">
       
-      <header class="bg-green-600 text-white p-6 relative">
+      <header class="bg-green-600 text-white p-6 relative text-white">
         <div *ngIf="carregandoPainel" class="absolute inset-0 bg-green-600/50 flex items-center justify-center z-10 backdrop-blur-[1px]">
            <div class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
         </div>
         <div class="flex justify-between items-start text-white">
-          <h2 class="text-xl font-bold leading-tight">🌳 {{ parqueSelecionado.nome }}</h2>
+          <h2 class="text-xl font-bold leading-tight text-white">🌳 {{ parqueSelecionado.nome }}</h2>
           <button (click)="parqueSelecionado = null" class="text-white hover:text-green-200 text-2xl">&times;</button>
         </div>
-        <p class="text-[10px] uppercase font-bold tracking-widest mt-2 opacity-80">Diagnóstico de Zeladoria</p>
+        <p class="text-[10px] uppercase font-bold tracking-widest mt-2 opacity-80 text-white">Diagnóstico de Zeladoria</p>
       </header>
 
       <div class="p-6 flex-1 overflow-y-auto space-y-6">
@@ -57,7 +51,7 @@ const CORES_ALERTA: Record<string, string> = {
           </div>
         </div>
 
-        <div class="space-y-4">
+        <div class="space-y-4 text-gray-900">
           <h4 class="text-xs font-bold text-gray-400 uppercase">Indicadores</h4>
           <div *ngFor="let item of [
             {label: 'Buracos na Via', val: statsParque.buracos, cor: 'bg-red-500'},
@@ -65,7 +59,7 @@ const CORES_ALERTA: Record<string, string> = {
             {label: 'Mato Alto', val: statsParque.mato, cor: 'bg-green-500'}
           ]" class="space-y-1">
             <div class="flex justify-between text-[11px] font-bold"><span>{{item.label}}</span><span>{{item.val}}</span></div>
-            <div class="w-full bg-gray-100 h-2 rounded-full overflow-hidden text-gray-900">
+            <div class="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
               <div [class]="item.cor + ' h-full'" [style.width.%]="(item.val / (statsParque.total || 1)) * 100"></div>
             </div>
           </div>
@@ -80,7 +74,7 @@ const CORES_ALERTA: Record<string, string> = {
         </div>
       </div>
 
-      <footer class="p-6 bg-gray-50 border-t border-gray-100">
+      <footer class="p-6 bg-gray-50 border-t border-gray-100 text-gray-900">
         <button (click)="exportarPDF()" [disabled]="carregandoExport" class="w-full bg-gray-800 text-white py-3 rounded-lg font-bold text-sm hover:bg-gray-900 transition-colors flex justify-center items-center gap-2 disabled:opacity-70">
           <div *ngIf="carregandoExport" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
           {{ carregandoExport ? 'Processando PDF...' : 'Gerar Relatório Profissional' }}
@@ -89,7 +83,7 @@ const CORES_ALERTA: Record<string, string> = {
     </div>
 
     <!-- Painel de Rota Segura -->
-    <div *ngIf="modoRotaAtivo && pontosRota.length >= 2" class="absolute bottom-24 left-4 z-[1000] bg-white p-3 rounded-lg shadow-xl border border-blue-100 max-w-[250px] pointer-events-auto">
+    <div *ngIf="modoRotaAtivo && pontosRota.length >= 2" class="absolute bottom-24 left-4 z-[1000] bg-white p-3 rounded-lg shadow-xl border border-blue-100 max-w-[250px] pointer-events-auto text-gray-900">
       <div class="flex items-center gap-2 mb-2">
         <div *ngIf="carregandoRota" class="w-3 h-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
         <div *ngIf="!carregandoRota" class="w-3 h-3 rounded-full animate-pulse" [ngClass]="rotaSegura ? 'bg-green-500' : 'bg-red-500'"></div>
@@ -101,8 +95,8 @@ const CORES_ALERTA: Record<string, string> = {
 
     <!-- Interface de Registro de Parque -->
     <div *ngIf="modoParqueAtivo" class="absolute top-24 left-4 z-[1000] bg-green-600 text-white p-4 rounded-lg shadow-2xl border-2 border-white max-w-[280px] pointer-events-auto">
-      <h3 class="font-bold text-sm flex items-center gap-2">🌳 Modo Desenho</h3>
-      <p class="text-[10px] mt-1 opacity-90">Defina os limites no mapa.</p>
+      <h3 class="font-bold text-sm flex items-center gap-2 text-white">🌳 Modo Desenho</h3>
+      <p class="text-[10px] mt-1 opacity-90 text-white">Defina os limites no mapa.</p>
       <div class="flex gap-2 mt-3">
         <button (click)="salvarParque()" [disabled]="pontosParque.length < 3 || carregando" class="flex-1 bg-white text-green-700 text-[10px] font-bold py-2 rounded flex justify-center items-center gap-1">
            <div *ngIf="carregando" class="w-3 h-3 border-2 border-green-700 border-t-transparent rounded-full animate-spin"></div>
@@ -117,12 +111,12 @@ const CORES_ALERTA: Record<string, string> = {
       <button (click)="alternarModoRota()" 
         [class]="modoRotaAtivo ? 'bg-red-600' : 'bg-gray-800'" 
         class="text-white px-4 py-3 rounded-full shadow-lg transition-all hover:scale-105 flex items-center gap-2 min-w-fit border-2 border-white/20">
-        <span class="text-xs font-bold whitespace-nowrap">{{ modoRotaAtivo ? 'Sair Rota' : '📍 Rota' }}</span>
+        <span class="text-xs font-bold whitespace-nowrap text-white">{{ modoRotaAtivo ? 'Sair Rota' : '📍 Rota' }}</span>
       </button>
       <button (click)="alternarModoParque()" 
         [class]="modoParqueAtivo ? 'bg-green-700' : 'bg-green-600'" 
         class="text-white px-4 py-3 rounded-full shadow-lg transition-all hover:scale-105 flex items-center gap-2 min-w-fit border-2 border-white/20">
-        <span class="text-xs font-bold whitespace-nowrap">🌳 Áreas</span>
+        <span class="text-xs font-bold whitespace-nowrap text-white">🌳 Áreas</span>
       </button>
     </div>
   `,
@@ -173,9 +167,10 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    setTimeout(() => {
-      this.iniciarMapa();
-      this.carregarDados();
+    // SÊNIOR: Como iniciarMapa agora é async, precisamos esperar ele terminar para carregar os dados
+    setTimeout(async () => {
+      await this.iniciarMapa();
+      await this.carregarDados();
     }, 100);
 
     document.addEventListener('click', (event: any) => {
@@ -188,8 +183,15 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void { if (this.map) this.map.remove(); }
 
-  private iniciarMapa(): void {
+  private async iniciarMapa(): Promise<void> {
     if (this.map) return;
+
+    // SÊNIOR: Define o L global ANTES de importar qualquer plugin
+    (window as any).L = L;
+    
+    // Importa o plugin dinamicamente para garantir a ordem de execução no esbuild (Vercel)
+    await import('leaflet-routing-machine');
+
     this.map = L.map('map', { zoomControl: false }).setView([-15.8250, -48.0600], 13);
     L.control.zoom({ position: 'bottomleft' }).addTo(this.map);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { 
@@ -205,7 +207,8 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
       if (this.modoParqueAtivo) this.gerenciarCliqueParque(e.latlng);
       else if (this.modoRotaAtivo) this.gerenciarCliqueRota(e.latlng);
     });
-    setTimeout(() => this.map?.invalidateSize(), 500);
+    
+    this.map.invalidateSize();
   }
 
   async abrirPainelParque(id: string) {
@@ -278,11 +281,10 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
   }
 
   private async calcularRota() {
-    // Garante acesso ao Routing através de window.L para evitar erro de produção
     const Leaflet = (window as any).L;
+    
     if (!Leaflet.Routing) {
-      console.error("Leaflet Routing Machine não carregado.");
-      return;
+      await import('leaflet-routing-machine');
     }
 
     if (this.routingControl) this.map?.removeControl(this.routingControl);
